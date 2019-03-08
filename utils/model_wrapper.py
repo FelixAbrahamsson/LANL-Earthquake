@@ -229,9 +229,14 @@ class ModelWrapper:
 
                 batch_preds = output.cpu().numpy()
                 preds.extend(batch_preds)
-                seg_ids.extend(batch['seg_id'])
 
-        return np.array(preds).squeeze(1), seg_ids
+                if 'seg_id' in batch:
+                    seg_ids.extend(batch['seg_id'])
+
+        if seg_ids:
+            return np.array(preds).squeeze(1), seg_ids
+        else:
+            return np.array(preds)
 
     def save_state(self, folder, name):
 

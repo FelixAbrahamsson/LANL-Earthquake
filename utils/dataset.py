@@ -4,33 +4,7 @@ import glob
 import pandas as pd
 
 
-class EarthquakeDatasetPieces(Dataset):
-
-    def __init__(self, data_dir):
-
-        self.data_dir = data_dir
-        self.n_data = len(glob.glob(self.data_dir))
-
-    def __len__(self):
-
-        return self.n_data
-
-    def __getitem__(self, idx):
-
-        df = pd.read_csv(self.data_dir + 'train_{}.csv'.format(idx))
-
-        features = torch.tensor(df['acoustic_data'].values, dtype=torch.float)
-        label = torch.tensor(df['time_to_failure'].values[-1], dtype=torch.float)
-
-        sample = {
-            'features' : features,
-            'labels' : label,
-        }
-
-        return sample
-
-
-class EarthquakeDatasetFull(Dataset):
+class EarthquakeDatasetTrain(Dataset):
 
     def __init__(self, data, window_step=1, mask_prob=0.0):
 
@@ -67,9 +41,10 @@ class EarthquakeDatasetFull(Dataset):
 
 class EarthquakeDatasetTest(Dataset):
 
-    def __init__(self, test_dir):
+    def __init__(self, test_dir, scale_fnc=None):
 
         self.test_files = glob.glob(test_dir + '*')
+        self.scale_fnc = scale_fnc
 
     def __len__(self):
 
@@ -81,7 +56,12 @@ class EarthquakeDatasetTest(Dataset):
         seg_id = file_path.split('/')[-1].split('.csv')[0]
         df = pd.read_csv(file_path)
 
-        features = torch.tensor(df['acoustic_data'].values, dtype=torch.float)
+        features = df['acoustic_data'].values
+
+        if scale_fnc is not None:
+            features = scale_fnc(features)
+
+        features = torch.tensor(features, dtype=torch.float)
 
         sample = {
             'features' : features,

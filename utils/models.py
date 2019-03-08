@@ -32,14 +32,26 @@ class ConvTransformer(nn.Module):
             seq_len = out_seq_len
 
         self.convs = nn.Sequential(*convs)
-        out_seq_len *= config['n_filters'][-1]
 
-        self.dense = nn.Sequential(
-            nn.Linear(out_seq_len, config['dense_size']),
-            nn.ReLU(),
-            nn.Dropout(config['dropout']),
-            nn.Linear(config['dense_size'], 1),
+        dense = []
+        in_size = out_seq_len * config['n_filters'][-1]
+        for size in config['dense_size']:
+
+            dense_block = nn.Sequential(
+                nn.Linear(in_size, size),
+                nn.BatchNorm1d(size),
+                nn.ReLU(),
+                nn.Dropout(config['dropout'])
+            )
+
+            in_size = size
+            dense.append(dense_block)
+
+        dense.append(
+            nn.Linear(in_size, 1)
         )
+
+        self.dense = nn.Sequential(*dense)
 
         self.criterion = nn.L1Loss().to(self.device)
 
