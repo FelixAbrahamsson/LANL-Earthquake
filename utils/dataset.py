@@ -28,7 +28,7 @@ class EarthquakeDatasetTrain(Dataset):
         label = torch.tensor(slice_data[-1, 1], dtype=torch.float)
 
         if self.mask_prob:
-            feature_mask = (torch.rand(len(features)) < self.mask_prob).float()
+            feature_mask = (torch.rand(len(features)) > self.mask_prob).float()
             features = features * feature_mask
 
         sample = {
