@@ -3,6 +3,36 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class LSTMNet(nn.Module):
+
+    def __init__(self, config):
+        super(LSTMNet, self).__init__()
+
+        self.config = config
+        self.device = torch.device("cuda" if self.config['use_cuda'] else "cpu")
+        self.rnn = nn.LSTM(config['n_features'], config['hidden_size'],
+            batch_first=True,
+            num_layers=config['num_layers'], 
+            bidirectional=config['bidirectional'])
+        lstm_outsize = config['hidden_size'] * (1+1*config['bidirectional'])
+        self.dropout = nn.Dropout(config['dropout'])
+        self.dense = nn.Linear(lstm_outsize, config['dense_size'])
+        self.classifier = nn.Linear(config['dense_size'], 1)
+        self.criterion = nn.L1Loss()
+
+    def forward(self, x, labels=None):
+
+        x, (h_n, c_n) = self.rnn(x)
+        x = self.dropout(x[:, -1, :])
+        x = self.dropout(F.relu(self.dense(x)))
+        x = self.classifier(x)
+
+        if labels is not None:
+            return x, self.criterion(x, labels)
+        else:
+            return x
+
+
 class ConvTransformer(nn.Module):
 
     def __init__(self, config):

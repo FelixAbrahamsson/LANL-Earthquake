@@ -29,8 +29,11 @@ class ModelWrapper:
         model_choice = self.config['model_choice']
     
         if model_choice == 0:
-            # TODO: replace Net with network defined in models.py
             self.net = ConvTransformer(self.config).to(self.device)
+            self.weight_initialization(init='kaiming')
+
+        elif model_choice == 1:
+            self.net = LSTMNet(self.config).to(self.device)
             self.weight_initialization(init='kaiming')
             
         else:
