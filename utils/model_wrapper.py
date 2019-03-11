@@ -35,6 +35,9 @@ class ModelWrapper:
         elif model_choice == 1:
             self.net = LSTMNet(self.config).to(self.device)
             self.weight_initialization(init='kaiming')
+
+        elif model_choice == 2:
+            self.net = FFNet(self.config).to(self.device)
             
         else:
             print("ERROR: NO MODEL SELECTED")

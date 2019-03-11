@@ -9,7 +9,6 @@ class LSTMNet(nn.Module):
         super(LSTMNet, self).__init__()
 
         self.config = config
-        self.device = torch.device("cuda" if self.config['use_cuda'] else "cpu")
         self.rnn = nn.GRU(config['n_features'], config['hidden_size'],
             batch_first=True,
             num_layers=config['num_layers'], 
@@ -24,6 +23,30 @@ class LSTMNet(nn.Module):
 
         x, hidden = self.rnn(x)
         x = self.dropout(x[:, -1, :])
+        x = self.dropout(F.relu(self.dense(x)))
+        x = self.classifier(x)
+
+        if labels is not None:
+            return x, self.criterion(x, labels)
+        else:
+            return x
+
+
+class FFNet(nn.Module):
+
+    def __init__(self, config):
+        super(FFNet, self).__init__()
+
+        self.config = config
+        self.dropout = nn.Dropout(config['dropout'])
+        self.dense = nn.Linear(config['seq_len']*config['n_features'], 
+            config['dense_size'])
+        self.classifier = nn.Linear(config['dense_size'], 1)
+        self.criterion = nn.L1Loss()
+
+    def forward(self, x, labels=None):
+
+        x = x.view(x.size(0), -1)
         x = self.dropout(F.relu(self.dense(x)))
         x = self.classifier(x)
 
