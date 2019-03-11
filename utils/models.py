@@ -10,7 +10,7 @@ class LSTMNet(nn.Module):
 
         self.config = config
         self.device = torch.device("cuda" if self.config['use_cuda'] else "cpu")
-        self.rnn = nn.LSTM(config['n_features'], config['hidden_size'],
+        self.rnn = nn.GRU(config['n_features'], config['hidden_size'],
             batch_first=True,
             num_layers=config['num_layers'], 
             bidirectional=config['bidirectional'])
@@ -22,7 +22,7 @@ class LSTMNet(nn.Module):
 
     def forward(self, x, labels=None):
 
-        x, (h_n, c_n) = self.rnn(x)
+        x, hidden = self.rnn(x)
         x = self.dropout(x[:, -1, :])
         x = self.dropout(F.relu(self.dense(x)))
         x = self.classifier(x)
