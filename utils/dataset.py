@@ -13,7 +13,7 @@ class EarthquakeDatasetTrain(Dataset):
         self.data = data
         self.window_size = 150000
         self.window_step = window_step
-        self.n_data = (len(self.data) - self.window_size) // self.window_step
+        self.n_data = 1 + (len(self.data) - self.window_size) // self.window_step
         self.mask_prob = mask_prob
 
     def __len__(self):
